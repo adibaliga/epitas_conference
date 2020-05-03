@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Epitas Conference Room</title>
+    <meta name="keywords" content="epitas conference room">
+    <meta name="description" content="Conference room to share screen and audio with others">
+<link rel="apple-touch-icon" sizes="180x180" href="image/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="image/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="image/favicon-16x16.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+     <!-- <script src="RTCMulticonnection.min.js"></script>-->
+   <script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
+<script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
+<!--Pop Up images-->
+    <!-- let's call the following div as the POPUP FRAME -->
+    <div id="popup" class="popup panel panel-primary">
+        
+        <!-- and here comes the image -->
+        <img src="image/conf.png" alt="popup">
+            
+            <!-- Now this is the button which closes the popup-->
+        <div class="panel-footer">
+            <button id="close" class="myButton">Close</button>
+        </div>
+            
+            <!-- and finally we close the POPUP FRAME-->
+            <!-- everything on it will show up within the popup so you can add more things not just an image -->
+    </div>
+<!--Pop Up images-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<!--Pop up scrript-->
+<script>
+   $(document).ready(function () {
+    //select the POPUP FRAME and show it
+    $("#popup").hide().fadeIn(2000);
+
+    //close the POPUP if the button with id="close" is clicked
+    $("#close").on("click", function (e) {
+        e.preventDefault();
+        $("#popup").fadeOut(1000);
+    });
+});
+    </script>
+    <!--Pop up scrript-->
+
+<img src="image/epitas-logo.png"/>
+<div class="heading"><h2>JOIN CONFERENCE MEETING</h2></div>
+<div class="heading2"><input type="text" class="text-box" id="room-id" placeholder="Enter room name" value="" autocorrect=off autocapitalize=off size=20>
+<button id="btn-open-room" class="room">Open Room</button>
+<button id="btn-join-room"class="room">Join Room</button>
+<input type="checkbox" id="protect-room-with-password" checked>
+<button id="btn-exit-room"class="room">Exit</button></div>
+<div class="row">
+    <center>
+<div class="column-left" >
+    <div class="column-left1">Info<img src="https://upload.wikimedia.org/wikipedia/en/5/54/Information.png" width="92px"height="90px">
+        <!--<img src="image/attendes.png" width="92px"height="90px">--></div><hr>
+        <p>
+            
+                
+                    <strong><u>Create ROOM</u></strong>
+                    <p>One can create Conference room for screen and audio sharing
+                    by clicking <strong>Open Room</strong> and choose your screen to share
+                    and click for Mic to use for audio conference</p>
+                    <strong><u>Join ROOM</u></strong>
+                    <p>One can join Conference room for screen and audio sharing
+                    by clicking <strong>Join Room</strong> and select Mic for audio 
+                conference</p>
+                <strong>For joining room,Cancel screen share if you just wanted to see creators screen</strong>
+            
+        </p>
+</div></center>
+<div class="column-center"><div id="audios-container"></div>
+<div id="videos-container"></div></div>
+
+<script>
+var connection = new RTCMultiConnection();
+
+// this line is VERY_important
+
+connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+
+// all below lines are optional; however recommended.
+
+
+connection.session = {
+    audio: true,
+    video:true,
+    screen:true,
+    
+ mandatory:{oneway:true}
+};
+connection.mediaConstraints = {
+    audio: true,
+    video: false
+};
+
+
+connection.maxParticipantsAllowed = 2;
+
+connection.sdpConstraints.mandatory = {
+    OfferToReceiveAudio: false,
+    OfferToReceiveVideo: false
+};
+
+
+connection.onstream = function(event) {
+    
+    document.body.appendChild( event.mediaElement );
+};
+
+
+document.getElementById('btn-open-room').onclick = function() {
+    
+    
+    if (document.getElementById('protect-room-with-password').checked === true) {
+        var password = prompt('Please Enter Password');
+        if (!password || !password.length ) {
+            alert('Please enter a valid password.');
+            return;
+        }
+
+        connection.password = password; // <------check this line
+    }
+
+    connection.open(document.getElementById('room-id').value, function(isRoomOpened, roomid, error) {
+        if (error) {
+            if (error === 'Room not available') {
+                alert('Someone already created this room. Please either join or create a separate room.');
+                return;
+            }
+
+            alert(error);
+        }
+    });
+    if (document.getElementById('room-id').value===""){
+    alert("Enter Room name");
+} 
+else{
+   this.disabled = true;
+    document.getElementById('room-id').disabled=true;
+    document.getElementById('btn-join-room').disabled=true;
+    connection.open( document.getElementById('room-id').value);
+}
+};
+
+document.getElementById('btn-join-room').onclick = function() {
+    if (document.getElementById('protect-room-with-password').checked === true) {
+        var password = prompt('Please Enter Password');
+        if (!password || !password.length) {
+            alert('Please enter a valid password.');
+            return;
+        }
+
+        connection.password = password;
+    }
+    if (document.getElementById('room-id').value===""){
+    alert("Enter Room name");
+} 
+else{
+   
+    
+     this.disabled = true;
+    connection.session={
+        audio:true,
+        video:false
+    };
+    connection.sdpConstraints.mandatory = {
+        OfferToReceiveAudio: false,
+        OfferToReceiveVideo: false
+    };
+    document.getElementById('room-id').disabled=true;
+    document.getElementById('btn-open-room').disabled=true;
+
+    connection.join(document.getElementById('room-id').value, function(isJoinedRoom, roomid, error) {
+        if (error) {
+            if (error === 'Invalid password') {
+                var password = prompt('Please Enter Password');
+                if (!password || !password.length) {
+                    alert(error);
+                    return;
+                }
+                connection.password = password;
+                connection.join( document.getElementById('room-id').value);
+                if(isJoinedRoom==true){
+                alert("Successfully joined room:"+document.getElementById('room-id').value);
+                }
+               // document.getElementById('join-room').onclick();
+                return;
+            }
+            if (error === 'Room not available') {
+                alert('This room does not exist. Please either create it or wait for moderator to enter in the room.');
+                return;
+            }
+            alert(error);
+        }
+    });
+}
+};
+
+document.getElementById('btn-exit-room').onclick=function(){
+    connection.getAllParticipants().forEach(function(pid) {
+        connection.disconnectWith(pid);
+    });
+
+    // stop all local cameras
+    connection.attachStreams.forEach(function(localStream) {
+        localStream.stop();
+    });
+
+    // close socket.io connection
+    connection.closeSocket();
+
+    document.getElementById("btn-open-room").disabled = false;
+    document.getElementById("btn-join-room").disabled = false;
+    document.getElementById("room-id").disabled = false;
+    location.reload();
+};
+
+
+</script>
+</body>
+
+</html>
