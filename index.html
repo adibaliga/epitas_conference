@@ -224,6 +224,15 @@ document.getElementById('btn-exit-room').onclick=function(){
 
 
 </script>
+    <script>
+  function initFreshChat() {
+    window.fcWidget.init({
+      token: "d02d0212-322e-4c35-bd12-15361a6652fe",
+      host: "https://wchat.in.freshchat.com"
+    });
+  }
+  function initialize(i,t){var e;i.getElementById(t)?initFreshChat():((e=i.createElement("script")).id=t,e.async=!0,e.src="https://wchat.in.freshchat.com/js/widget.js",e.onload=initFreshChat,i.head.appendChild(e))}function initiateCall(){initialize(document,"freshchat-js-sdk")}window.addEventListener?window.addEventListener("load",initiateCall,!1):window.attachEvent("load",initiateCall,!1);
+</script>
 </body>
 
 </html>
